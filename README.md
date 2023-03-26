@@ -57,8 +57,8 @@ The server will authenticate the request using the Authorization header with the
 
 ```sh
 curl -X GET -u "<DDNS_USERNAME>:<DDNS_PASSWORD>" "https://<your-server-address>/nic/update?hostname=<hostname>&myip=<ipaddr>"
-Replace <DDNS_USERNAME> and <DDNS_PASSWORD> with the actual values you set for those environment variables.
 ```
+Replace <DDNS_USERNAME> and <DDNS_PASSWORD> with the actual values you set for those environment variables.
 
 
 ### Docker Hub
