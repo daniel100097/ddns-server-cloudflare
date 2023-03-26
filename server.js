@@ -16,9 +16,28 @@ app.use(basicAuth({
 
 app.get('/nic/update', async (req, res) => {
     const { hostname, myip } = req.query;
+    console.log(
+        [
+            'Received request:',
+            JSON.stringify({
+                hostname,
+                myip,
+            }),
+            req.ip
+        ]
+    )
 
     if (!hostname || !myip) {
         res.status(400).send('Missing hostname or IP address');
+        return;
+    }
+
+    const myips = myip.split(',');
+    const firstipv4 = myips.find(ip => // check with regex
+        /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip)
+    );
+    if (!firstipv4) {
+        res.status(400).send('Invalid IPv4 address');
         return;
     }
 
@@ -73,10 +92,10 @@ app.get('/nic/update', async (req, res) => {
             body: JSON.stringify({
                 type: record.type,
                 name: hostname,
-                content: myip,
+                content: firstipv4,
             }),
         });
-        console.log(`Updated ${hostname} to ${myip}`);
+        console.log(`Updated ${hostname} to ${firstipv4}`);
         const resultJson = await result.json();
 
         if (!resultJson.success) {
