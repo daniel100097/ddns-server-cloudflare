@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  ddns-server:
+    build: .
+    environment:
+      CLOUDFLARE_API_KEY: <key>
+      CLOUDFLARE_ZONE: <zone>
+      DDNS_USERNAME: <username>
+      DDNS_PASSWORD: <password>
+      ALLOWED_HOSTNAMES: <hostname1>,<hostname2>
+    ports:
+      - "3000:3000"
