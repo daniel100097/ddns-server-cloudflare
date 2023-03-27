@@ -33,11 +33,18 @@ app.get('/nic/update', async (req, res) => {
     }
 
     const myips = myip.split(',');
-    const firstipv4 = myips.find(ip => // check with regex
-        /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip)
+    const ipv4Regex = () => /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    const ipv6Regex = () => /^((?=.*(::))(?!.*\3.+\3)(\3|[\dA-F]{1,4}(?::|\3)){0,7}|([\dA-F]{1,4}:){7}[\dA-F]{1,4})$/i;
+
+
+    const firstipv4 = myips.find(ip =>
+        ipv4Regex.test(ip)
     );
-    if (!firstipv4) {
-        res.status(400).send('Invalid IPv4 address');
+    const firstipv6 = myips.find(ip =>
+        ipv6Regex.test(ip)
+    );
+    if (!firstipv4 && !firstipv6) {
+        res.status(400).send('Invalid IPv4/6 address');
         return;
     }
 
@@ -83,6 +90,15 @@ app.get('/nic/update', async (req, res) => {
             return;
         }
 
+        if (record.type === 'AAAA' && !firstipv6) {
+            res.status(400).send('Invalid IPv6 address');
+            return;
+        }
+        if (record.type === 'A' && !firstipv4) {
+            res.status(400).send('Invalid IPv4 address');
+            return;
+        }
+
         const result = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records/${record.id}`, {
             method: 'PUT',
             headers: {
@@ -92,10 +108,11 @@ app.get('/nic/update', async (req, res) => {
             body: JSON.stringify({
                 type: record.type,
                 name: hostname,
-                content: firstipv4,
+                content: record.type === 'AAAA' ? firstipv6 : firstipv4,
             }),
         });
-        console.log(`Updated ${hostname} to ${firstipv4}`);
+        console.log(`Updated ${hostname} to ${record.type === 'AAAA' ? firstipv6 : firstipv4
+            }`);
         const resultJson = await result.json();
 
         if (!resultJson.success) {
