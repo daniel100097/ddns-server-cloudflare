@@ -38,10 +38,10 @@ app.get('/nic/update', async (req, res) => {
 
 
     const firstipv4 = myips.find(ip =>
-        ipv4Regex.test(ip)
+        ipv4Regex().test(ip)
     );
     const firstipv6 = myips.find(ip =>
-        ipv6Regex.test(ip)
+        ipv6Regex().test(ip)
     );
     if (!firstipv4 && !firstipv6) {
         res.status(400).send('Invalid IPv4/6 address');
